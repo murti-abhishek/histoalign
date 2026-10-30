@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+# local datasets and run outputs
+_dev/
+tests/data/*
+!tests/data/README.md
+outputs*/
