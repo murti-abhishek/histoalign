@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.00372047816021982,
+   1.2880411526437165,
+   1778.4265406419254
+  ],
+  [
+   -1.2880411526437165,
+   -0.00372047816021982,
+   10492.695407223728
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 324,
+  "median_um": 1.2148453110835984,
+  "p90_um": 2.2081744571256796,
+  "p99_um": 2.5919111184084196,
+  "max_um": 3.0,
+  "n_tiles_chance": 1,
+  "frac_tiles_chance": 0.0030864197530864196,
+  "n_chance": 10890.0,
+  "n_matched": 38861,
+  "n_nuclei": 56510,
+  "mean_dx_um": -0.060433870423986194,
+  "mean_dy_um": 0.2327441795885118,
+  "systematic_offset_um": 0.2404622752673537
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/kidney_prcc/Xenium_V1_hKidney_cancer_section_he_imagealignment.csv"
+}

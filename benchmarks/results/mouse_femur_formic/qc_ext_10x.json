@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.00012900811105126498,
+   1.2921679748790076,
+   -5936.264411903234
+  ],
+  [
+   -1.2921679748790076,
+   -0.00012900811105126498,
+   46219.63390992164
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 353,
+  "median_um": 3.0,
+  "p90_um": 3.0,
+  "p99_um": 3.0,
+  "max_um": 3.0,
+  "n_tiles_chance": 341,
+  "frac_tiles_chance": 0.9660056657223796,
+  "n_chance": 56376.5,
+  "n_matched": 58464,
+  "n_nuclei": 252226,
+  "mean_dx_um": 0.029277152018949596,
+  "mean_dy_um": 0.03710194421758997,
+  "systematic_offset_um": 0.047262097869919424
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/mouse_femur_formic/Xenium_V1_mFemur_formic_acid_24hrdecal_section_he_imagealignment.csv"
+}

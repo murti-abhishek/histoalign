@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.013437495479213623,
+   1.2881825339064126,
+   -1168.5013286594822
+  ],
+  [
+   -1.2881825339064126,
+   0.013437495479213623,
+   21910.702065811332
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 408,
+  "median_um": 0.45159062401576816,
+  "p90_um": 1.2011661053471272,
+  "p99_um": 1.4719374352433399,
+  "max_um": 1.6218810522829605,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 19477.5,
+  "n_matched": 67932,
+  "n_nuclei": 99796,
+  "mean_dx_um": -0.05897805201356837,
+  "mean_dy_um": -0.10293659195859634,
+  "systematic_offset_um": 0.1186353766098702
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/skin_melanoma_5k/Xenium_Prime_Human_Skin_FFPE_he_imagealignment.csv"
+}

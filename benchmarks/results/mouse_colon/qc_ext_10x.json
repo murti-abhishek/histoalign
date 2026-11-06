@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.005450646677213899,
+   1.2885156862940241,
+   -750.5884898411819
+  ],
+  [
+   -1.2885156862940241,
+   0.005450646677213899,
+   39517.2264124271
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 653,
+  "median_um": 0.6326428241858955,
+  "p90_um": 1.0128852640113293,
+  "p99_um": 1.3736422286358916,
+  "max_um": 1.8432551501378236,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 37056.0,
+  "n_matched": 116184,
+  "n_nuclei": 203279,
+  "mean_dx_um": 0.10820797850693022,
+  "mean_dy_um": 0.48523169946213573,
+  "systematic_offset_um": 0.4971506499799318
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/mouse_colon/Xenium_V1_mouse_Colon_FF_he_imagealignment.csv"
+}

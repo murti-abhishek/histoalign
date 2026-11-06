@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.006640133997135702,
+   1.2891658214588846,
+   311.2786485988029
+  ],
+  [
+   -1.2891658214588846,
+   0.006640133997135702,
+   37432.85939451914
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 916,
+  "median_um": 1.5999834530439152,
+  "p90_um": 3.0,
+  "p99_um": 3.0,
+  "max_um": 3.0,
+  "n_tiles_chance": 168,
+  "frac_tiles_chance": 0.18340611353711792,
+  "n_chance": 215382.0,
+  "n_matched": 310534,
+  "n_nuclei": 716994,
+  "mean_dx_um": -0.5000715465308133,
+  "mean_dy_um": -0.5382231452842523,
+  "systematic_offset_um": 0.7346806828611957
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/lymph_node_5k/Xenium_Prime_Human_Lymph_Node_Reactive_FFPE_he_imagealignment.csv"
+}

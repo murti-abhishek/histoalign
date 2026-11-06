@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0029711625983829216,
+   1.2895357383531532,
+   1569.685642189309
+  ],
+  [
+   -1.2895357383531532,
+   0.0029711625983829216,
+   22875.37819196246
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 633,
+  "median_um": 0.36434010416950824,
+  "p90_um": 0.642673990396235,
+  "p99_um": 0.8553127862993809,
+  "max_um": 1.0019826715217874,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 11653.0,
+  "n_matched": 47216,
+  "n_nuclei": 61695,
+  "mean_dx_um": 0.27780742581436907,
+  "mean_dy_um": 0.20773358362573416,
+  "systematic_offset_um": 0.34688644770817445
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/mouse_brain_5k/Xenium_Prime_Mouse_Brain_Coronal_FF_he_imagealignment.csv"
+}

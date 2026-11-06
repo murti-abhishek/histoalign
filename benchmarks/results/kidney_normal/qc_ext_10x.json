@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.012479935279541327,
+   1.2880707674737188,
+   -858.4342693720391
+  ],
+  [
+   -1.2880707674737188,
+   0.012479935279541327,
+   13006.84247989411
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 502,
+  "median_um": 0.398311175796503,
+  "p90_um": 0.637164765897104,
+  "p99_um": 0.9138875281648404,
+  "max_um": 0.9984966396377583,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 16041.5,
+  "n_matched": 72085,
+  "n_nuclei": 93385,
+  "mean_dx_um": 0.14598060658178488,
+  "mean_dy_um": 0.2190682250805527,
+  "systematic_offset_um": 0.26325125780882713
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/kidney_normal/Xenium_V1_hKidney_nondiseased_section_he_imagealignment.csv"
+}

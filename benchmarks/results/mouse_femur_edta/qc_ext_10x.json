@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.0020479974225379284,
+   1.2881927096348904,
+   -3282.095688086515
+  ],
+  [
+   -1.2881927096348904,
+   -0.0020479974225379284,
+   49161.53738007208
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 827,
+  "median_um": 0.4388501856277501,
+  "p90_um": 0.8546368387073733,
+  "p99_um": 1.3948514010550872,
+  "max_um": 3.0,
+  "n_tiles_chance": 3,
+  "frac_tiles_chance": 0.0036275695284159614,
+  "n_chance": 83376.5,
+  "n_matched": 156982,
+  "n_nuclei": 344867,
+  "mean_dx_um": 0.003392962830573642,
+  "mean_dy_um": 0.2159113903008885,
+  "systematic_offset_um": 0.21593804819538465
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/mouse_femur_edta/Xenium_V1_mFemur_EDTA_3daydecal_section_he_imagealignment.csv"
+}

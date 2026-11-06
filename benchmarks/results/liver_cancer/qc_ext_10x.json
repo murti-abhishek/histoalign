@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0002316835367962885,
+   1.2879736905747337,
+   -739.1489439495526
+  ],
+  [
+   -1.2879736905747337,
+   0.0002316835367962885,
+   19067.448165493573
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 729,
+  "median_um": 0.8207022991504775,
+  "p90_um": 1.4907739085261733,
+  "p99_um": 1.75320569045256,
+  "max_um": 1.8716890231236987,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 27455.25,
+  "n_matched": 115308,
+  "n_nuclei": 162621,
+  "mean_dx_um": 0.10660826927879963,
+  "mean_dy_um": 0.7839349490463237,
+  "systematic_offset_um": 0.7911506350973139
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/liver_cancer/Xenium_V1_hLiver_cancer_section_FFPE_he_imagealignment.csv"
+}

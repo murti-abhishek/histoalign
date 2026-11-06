@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.0172213367495114,
+   1.2898710970458191,
+   -3651.5538559977476
+  ],
+  [
+   -1.2898710970458191,
+   -0.0172213367495114,
+   51663.7333138838
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 3024,
+  "median_um": 0.8632660930376521,
+  "p90_um": 1.5950305169595385,
+  "p99_um": 2.0881043750438497,
+  "max_um": 2.40778769020703,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 171567.25,
+  "n_matched": 558040,
+  "n_nuclei": 834575,
+  "mean_dx_um": 0.6945246101691189,
+  "mean_dy_um": 0.5279019940096646,
+  "systematic_offset_um": 0.8723789024328515
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/cervix_5k/Xenium_Prime_Cervical_Cancer_FFPE_he_imagealignment.csv"
+}

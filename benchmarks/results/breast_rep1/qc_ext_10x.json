@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   1.7125010585876286,
+   0.008345081015717404,
+   -10397.19948741904
+  ],
+  [
+   0.008345081015717404,
+   -1.7125010585876286,
+   37211.538978661185
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 908,
+  "median_um": 0.781817592090045,
+  "p90_um": 1.3284139343707504,
+  "p99_um": 1.7350085022460104,
+  "max_um": 1.9901236102755389,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 26595.75,
+  "n_matched": 114786,
+  "n_nuclei": 167769,
+  "mean_dx_um": -0.10876186278857954,
+  "mean_dy_um": 0.4333024138289348,
+  "systematic_offset_um": 0.44674391392298035
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/breast_rep1/Xenium_FFPE_Human_Breast_Cancer_Rep1_he_imagealignment.csv"
+}

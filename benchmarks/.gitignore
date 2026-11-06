@@ -1,0 +1,7 @@
+data/
+runs/
+logs/
+__pycache__/
+results/*/*.png
+results/*/*_tiles.csv
+results/*/DONE

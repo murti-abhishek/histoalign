@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.004856995723563102,
+   1.2884838654089,
+   -9228.051216425085
+  ],
+  [
+   -1.2884838654089,
+   -0.004856995723563102,
+   35270.93282606553
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1511,
+  "median_um": 0.6834786937894393,
+  "p90_um": 1.154138542899444,
+  "p99_um": 1.4409075579218213,
+  "max_um": 1.7197116920299336,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 105121.75,
+  "n_matched": 249798,
+  "n_nuclei": 587034,
+  "mean_dx_um": 0.008706273825746277,
+  "mean_dy_um": 0.17884841294850928,
+  "systematic_offset_um": 0.179060196632667
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/colon_cancer/Xenium_V1_hColon_Cancer_Add_on_FFPE_he_imagealignment.csv"
+}

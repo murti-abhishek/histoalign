@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.003221267189115605,
+   1.2878328830685464,
+   -1066.862373012329
+  ],
+  [
+   -1.2878328830685464,
+   -0.003221267189115605,
+   52277.66447631073
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 2651,
+  "median_um": 0.4496936381288184,
+  "p90_um": 0.9580264999840439,
+  "p99_um": 1.296100521211685,
+  "max_um": 1.6194060603915956,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 145074.25,
+  "n_matched": 502320,
+  "n_nuclei": 799149,
+  "mean_dx_um": 0.07542422134162834,
+  "mean_dy_um": 0.22271582077544305,
+  "systematic_offset_um": 0.23514070253503586
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/brain_gbm/Xenium_V1_Human_Brain_GBM_FFPE_he_imagealignment.csv"
+}

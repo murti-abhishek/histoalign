@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.003336282755203098,
+   1.2880098836567242,
+   -682.8446889461538
+  ],
+  [
+   -1.2880098836567242,
+   0.003336282755203098,
+   31952.402785067505
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 340,
+  "median_um": 0.2450508510060821,
+  "p90_um": 0.45676604246180275,
+  "p99_um": 0.6635159865429107,
+  "max_um": 0.7203631084506691,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 3995.5,
+  "n_matched": 21203,
+  "n_nuclei": 25198,
+  "mean_dx_um": -0.01720992739926329,
+  "mean_dy_um": -0.15620879930777565,
+  "systematic_offset_um": 0.15715397094017333
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/heart/Xenium_V1_hHeart_nondiseased_section_FFPE_he_imagealignment.csv"
+}

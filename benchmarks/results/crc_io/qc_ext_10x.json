@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0009929413326928717,
+   1.2881907597727145,
+   -1524.452704098927
+  ],
+  [
+   -1.2881907597727145,
+   0.0009929413326928717,
+   23710.932154560887
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 876,
+  "median_um": 0.6514243603383556,
+  "p90_um": 0.9107170247537273,
+  "p99_um": 1.4145892566862908,
+  "max_um": 3.0,
+  "n_tiles_chance": 7,
+  "frac_tiles_chance": 0.007990867579908675,
+  "n_chance": 70025.5,
+  "n_matched": 149836,
+  "n_nuclei": 360677,
+  "mean_dx_um": -0.25329622018155595,
+  "mean_dy_um": 0.538772376076629,
+  "systematic_offset_um": 0.5953441428128102
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/crc_io/Xenium_V1_Human_Colorectal_Cancer_Addon_FFPE_he_imagealignment.csv"
+}

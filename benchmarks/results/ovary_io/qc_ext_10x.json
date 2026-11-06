@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0008916905965859894,
+   1.2880302473136016,
+   -2496.3606108028944
+  ],
+  [
+   -1.2880302473136016,
+   0.0008916905965859894,
+   27833.960618930992
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 794,
+  "median_um": 0.4796563951352001,
+  "p90_um": 0.7650676871907384,
+  "p99_um": 0.949748428393989,
+  "max_um": 1.0211596859568044,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 46052.75,
+  "n_matched": 137412,
+  "n_nuclei": 240012,
+  "mean_dx_um": -0.3743388022286665,
+  "mean_dy_um": 0.031594042661891496,
+  "systematic_offset_um": 0.3756696985194762
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/ovary_io/Xenium_V1_Human_Ovarian_Cancer_Addon_FFPE_he_imagealignment.csv"
+}

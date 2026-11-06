@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   1.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   1.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1236,
+  "median_um": 0.41458507906206077,
+  "p90_um": 0.9857369308571711,
+  "p99_um": 1.7648506515116158,
+  "max_um": 2.359838441682283,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 67025.0,
+  "n_matched": 242325,
+  "n_nuclei": 353828,
+  "mean_dx_um": 0.22113172842437878,
+  "mean_dy_um": 0.25279740418716323,
+  "systematic_offset_um": 0.33586570065983395
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/breast_ilc/Xenium_V1_FFPE_Human_Breast_ILC_he_imagealignment.csv"
+}

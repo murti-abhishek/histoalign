@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0017502644610483454,
+   1.287939823417229,
+   231.7299515255454
+  ],
+  [
+   -1.287939823417229,
+   0.0017502644610483454,
+   58729.96320595417
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1477,
+  "median_um": 0.6798079911446062,
+  "p90_um": 1.481727904655548,
+  "p99_um": 3.0,
+  "max_um": 3.0,
+  "n_tiles_chance": 42,
+  "frac_tiles_chance": 0.02843601895734597,
+  "n_chance": 228354.5,
+  "n_matched": 416981,
+  "n_nuclei": 826972,
+  "mean_dx_um": 0.3071276997254404,
+  "mean_dy_um": -0.39081098840259926,
+  "systematic_offset_um": 0.49705196166483123
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/tonsil_flh/Xenium_V1_hTonsil_follicular_lymphoid_hyperplasia_section_FFPE_he_imagealignment.csv"
+}

@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.012956081225478077,
+   1.288129976008215,
+   -7835.772155067356
+  ],
+  [
+   -1.288129976008215,
+   0.012956081225478077,
+   31059.08951977102
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1010,
+  "median_um": 0.3437149426893194,
+  "p90_um": 0.5635560833656424,
+  "p99_um": 0.7572750885307907,
+  "max_um": 0.9336588795767451,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 35626.5,
+  "n_matched": 125393,
+  "n_nuclei": 182568,
+  "mean_dx_um": -0.16215383147995735,
+  "mean_dy_um": 0.07997529240200112,
+  "systematic_offset_um": 0.18080351893261365
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/prostate_5k/Xenium_Prime_Human_Prostate_FFPE_he_imagealignment.csv"
+}

@@ -1,0 +1,34 @@
+label,version,name,he_version,csv_version,tissue,condition,species,prep,panel
+breast_rep1,1.0.1,Xenium_FFPE_Human_Breast_Cancer_Rep1,1.0.1,1.0.1,Breast,IDC (Janesick rep 1),human,FFPE,Breast v1
+breast_rep2,1.0.1,Xenium_FFPE_Human_Breast_Cancer_Rep2,1.0.1,1.0.1,Breast,IDC (Janesick rep 2),human,FFPE,Breast v1
+liver_normal,1.9.0,Xenium_V1_hLiver_nondiseased_section_FFPE,1.9.0,1.9.0,Liver,non-diseased,human,FFPE,Multi-tissue
+liver_cancer,1.9.0,Xenium_V1_hLiver_cancer_section_FFPE,1.9.0,1.9.0,Liver,cancer,human,FFPE,Multi-tissue + add-on
+heart,1.9.0,Xenium_V1_hHeart_nondiseased_section_FFPE,1.9.0,1.9.0,Heart,non-diseased,human,FFPE,Multi-tissue
+tonsil_flh,1.9.0,Xenium_V1_hTonsil_follicular_lymphoid_hyperplasia_section_FFPE,1.9.0,1.9.0,Tonsil,follicular lymphoid hyperplasia,human,FFPE,Multi-tissue
+tonsil_rfh,1.9.0,Xenium_V1_hTonsil_reactive_follicular_hyperplasia_section_FFPE,1.9.0,1.9.0,Tonsil,reactive follicular hyperplasia,human,FFPE,Multi-tissue
+kidney_normal,1.5.0,Xenium_V1_hKidney_nondiseased_section,1.5.0,1.5.0,Kidney,non-diseased (microstrips),human,FFPE,Multi-tissue preview
+kidney_prcc,1.5.0,Xenium_V1_hKidney_cancer_section,1.5.0,1.5.0,Kidney,papillary RCC (microstrips),human,FFPE,Multi-tissue preview
+pancreas_cancer,1.6.0,Xenium_V1_hPancreas_Cancer_Add_on_FFPE,1.6.0,1.6.0,Pancreas,adenocarcinoma,human,FFPE,Multi-tissue + add-on
+pancreas_cancer_mm,2.0.0,Xenium_V1_human_Pancreas_FFPE,2.0.0,2.0.0,Pancreas,adenocarcinoma (microstrips),human,FFPE,Multi-tissue
+lung_cancer_mm,2.0.0,Xenium_V1_humanLung_Cancer_FFPE,2.0.0,2.0.0,Lung,adenocarcinoma (microstrips),human,FFPE,Multi-tissue
+colon_normal,1.6.0,Xenium_V1_hColon_Non_diseased_Base_FFPE,1.6.0,1.6.0,Colon,non-diseased,human,FFPE,Colon v1
+colon_cancer,1.6.0,Xenium_V1_hColon_Cancer_Add_on_FFPE,1.6.0,1.6.0,Colon,adenocarcinoma,human,FFPE,Colon v1 + add-on
+crc_io,2.0.0,Xenium_V1_Human_Colorectal_Cancer_Addon_FFPE,2.0.0,2.0.0,Colon,adenocarcinoma,human,FFPE,IO + add-on
+lung_nsclc_io,2.0.0,Xenium_V1_Human_Lung_Cancer_Addon_FFPE,2.0.0,2.0.0,Lung,NSCLC,human,FFPE,IO + add-on
+brain_gbm,2.0.0,Xenium_V1_Human_Brain_GBM_FFPE,2.0.0,2.0.0,Brain,glioblastoma,human,FFPE,IO + add-on
+ovary_io,2.0.0,Xenium_V1_Human_Ovarian_Cancer_Addon_FFPE,2.0.0,2.0.0,Ovary,cancer,human,FFPE,IO + add-on
+kidney_ccrcc,4.0.0,Xenium_V1_Human_Kidney_FFPE_Protein_updated,4.0.0,4.0.0,Kidney,clear cell RCC,human,FFPE,Multi-tissue + protein
+ovary_5k,3.0.0,Xenium_Prime_Ovarian_Cancer_FFPE,3.0.0,3.0.0,Ovary,serous carcinoma,human,FFPE,Prime 5K + 100
+lymph_node_5k,3.0.0,Xenium_Prime_Human_Lymph_Node_Reactive_FFPE,3.0.0,3.0.0,Lymph node,reactive,human,FFPE,Prime 5K
+skin_melanoma_5k,3.0.0,Xenium_Prime_Human_Skin_FFPE,3.0.0,3.0.0,Skin,dermal melanoma,human,FFPE,Prime 5K
+cervix_5k,3.0.0,Xenium_Prime_Cervical_Cancer_FFPE,3.0.0,3.0.0,Cervix,cancer,human,FFPE,Prime 5K + 100
+prostate_5k,3.0.0,Xenium_Prime_Human_Prostate_FFPE,3.0.0,3.0.0,Prostate,adenocarcinoma,human,FFPE,Prime 5K
+breast_5k,3.0.0,Xenium_Prime_Breast_Cancer_FFPE,3.0.0,3.0.0,Breast,cancer,human,FFPE,Prime 5K + 100
+lung_5k,3.0.0,Xenium_Prime_Human_Lung_Cancer_FFPE,3.0.0,3.0.0,Lung,adenocarcinoma,human,FFPE,Prime 5K
+mouse_brain_5k,3.0.0,Xenium_Prime_Mouse_Brain_Coronal_FF,3.0.0,3.0.0,Brain,coronal hemisphere,mouse,fresh frozen,Mouse Prime 5K
+mouse_colon,2.0.0,Xenium_V1_mouse_Colon_FF,2.0.0,2.0.0,Colon,non-diseased (array),mouse,fresh frozen,Mouse atlas
+mouse_femur_formic,1.9.0,Xenium_V1_mFemur_formic_acid_24hrdecal_section,1.9.0,1.9.0,Bone,femur (formic acid decal.),mouse,FFPE,Mouse atlas + add-on
+mouse_femur_edta,1.9.0,Xenium_V1_mFemur_EDTA_3daydecal_section,1.9.0,1.9.0,Bone,femur (EDTA decal.),mouse,FFPE,Mouse atlas + add-on
+breast_idc_addon,1.3.0,Xenium_V1_FFPE_Human_Breast_IDC_With_Addon,1.3.0,identity,Breast,IDC,human,FFPE,Breast v1 + add-on
+breast_idc,1.0.2,Xenium_V1_FFPE_Human_Breast_IDC,1.0.2,identity,Breast,IDC/DCIS,human,FFPE,Breast v1
+breast_ilc,1.0.2,Xenium_V1_FFPE_Human_Breast_ILC,1.0.2,identity,Breast,ILC,human,FFPE,Breast v1

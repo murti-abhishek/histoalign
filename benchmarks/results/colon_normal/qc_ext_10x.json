@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.0027789270273719624,
+   0.6441452347925004,
+   -5708.457194290447
+  ],
+  [
+   -0.6441452347925004,
+   -0.0027789270273719624,
+   30627.258118847007
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 892,
+  "median_um": 0.9436459859216165,
+  "p90_um": 1.4911812117522876,
+  "p99_um": 2.107508223001352,
+  "max_um": 2.401681332628145,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 42993.0,
+  "n_matched": 123295,
+  "n_nuclei": 258071,
+  "mean_dx_um": 0.5587582328719712,
+  "mean_dy_um": 0.6066795692557627,
+  "systematic_offset_um": 0.8247853433194396
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/colon_normal/Xenium_V1_hColon_Non_diseased_Base_FFPE_he_imagealignment.csv"
+}

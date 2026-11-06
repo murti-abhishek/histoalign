@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0025203803493414633,
+   1.2888924294627828,
+   -847.0258142581342
+  ],
+  [
+   -1.2888924294627828,
+   0.0025203803493414633,
+   15680.61276889273
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 533,
+  "median_um": 0.5277921738703597,
+  "p90_um": 0.7997796589936731,
+  "p99_um": 1.0987539439989225,
+  "max_um": 1.378656443330252,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 26400.75,
+  "n_matched": 87263,
+  "n_nuclei": 141810,
+  "mean_dx_um": -0.051271505400812066,
+  "mean_dy_um": 0.3669811832683942,
+  "systematic_offset_um": 0.37054548457528963
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/pancreas_cancer_mm/Xenium_V1_human_Pancreas_FFPE_he_imagealignment.csv"
+}

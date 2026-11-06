@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   -0.004515247762845355,
+   1.2884478448203314,
+   443.68136423943724
+  ],
+  [
+   -1.2884478448203314,
+   -0.004515247762845355,
+   38011.41355855013
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1391,
+  "median_um": 0.43397983166558834,
+  "p90_um": 0.6919948169234983,
+  "p99_um": 0.9413811777292433,
+  "max_um": 1.401942048275895,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 45081.25,
+  "n_matched": 183702,
+  "n_nuclei": 232160,
+  "mean_dx_um": 0.013766210323495873,
+  "mean_dy_um": -0.34392416132202197,
+  "systematic_offset_um": 0.34419956026660886
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/liver_normal/Xenium_V1_hLiver_nondiseased_section_FFPE_he_imagealignment.csv"
+}

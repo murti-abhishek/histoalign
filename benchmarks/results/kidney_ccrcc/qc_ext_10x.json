@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0030273239131817036,
+   1.2896024024947854,
+   -11895.632666864709
+  ],
+  [
+   -1.2896024024947854,
+   0.0030273239131817036,
+   28913.600558020305
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1830,
+  "median_um": 0.6339530454759124,
+  "p90_um": 1.2573083359810004,
+  "p99_um": 1.438629941178868,
+  "max_um": 1.5957151548959294,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 95939.0,
+  "n_matched": 308388,
+  "n_nuclei": 471219,
+  "mean_dx_um": 0.009341997125144056,
+  "mean_dy_um": 0.4378809337379738,
+  "systematic_offset_um": 0.4379805761007285
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/kidney_ccrcc/Xenium_V1_Human_Kidney_FFPE_Protein_updated_he_imagealignment.csv"
+}

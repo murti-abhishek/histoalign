@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0020577905071231155,
+   1.2881536598133116,
+   -585.3454359480929
+  ],
+  [
+   -1.2881536598133116,
+   0.0020577905071231155,
+   39710.86561772243
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 1762,
+  "median_um": 0.3574570784313128,
+  "p90_um": 0.6349840664702696,
+  "p99_um": 3.0,
+  "max_um": 3.0,
+  "n_tiles_chance": 75,
+  "frac_tiles_chance": 0.04256526674233825,
+  "n_chance": 415423.25,
+  "n_matched": 657598,
+  "n_nuclei": 1272990,
+  "mean_dx_um": 0.17892140071723925,
+  "mean_dy_um": -0.20373849883231665,
+  "systematic_offset_um": 0.2711498543998591
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/tonsil_rfh/Xenium_V1_hTonsil_reactive_follicular_hyperplasia_section_FFPE_he_imagealignment.csv"
+}

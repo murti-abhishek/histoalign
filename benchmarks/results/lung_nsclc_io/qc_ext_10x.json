@@ -1,0 +1,36 @@
+{
+ "G": [
+  [
+   0.0007957494397747374,
+   1.2877319272733483,
+   -1306.0553194748172
+  ],
+  [
+   -1.2877319272733483,
+   0.0007957494397747374,
+   18572.23915491679
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "summary": {
+  "method": "nuclei",
+  "n_tiles": 802,
+  "median_um": 1.1737204489393724,
+  "p90_um": 1.7915611886388332,
+  "p99_um": 2.185795936300822,
+  "max_um": 2.321018331626102,
+  "n_tiles_chance": 0,
+  "frac_tiles_chance": 0.0,
+  "n_chance": 29144.75,
+  "n_matched": 108417,
+  "n_nuclei": 160991,
+  "mean_dx_um": -0.4970854485882796,
+  "mean_dy_um": 0.3877808260163038,
+  "systematic_offset_um": 0.6304505628707917
+ },
+ "alignment": "/tmp/claude-0/-home-claude/70e949f4-4a41-5672-a820-9561deef8876/scratchpad/bench/data/lung_nsclc_io/Xenium_V1_Human_Lung_Cancer_Addon_FFPE_he_imagealignment.csv"
+}
