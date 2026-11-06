@@ -12,7 +12,7 @@ from .coarse import dihedral, fit_similarity, sift_matches
 from .combine import benchmark_points, fit_global_from_regions, load_refined, pct, piecewise_to_he, region_lookup
 from .io import Pyramid, he_mpp, image_stem, xenium_info
 from .layout import choose_layout, regions_from_blocks, regions_from_components, section_mask
-from .nuclei import qc_region_nuclei, xenium_nuclei
+from .nuclei import QC_VERSION, qc_region_nuclei, xenium_nuclei
 from .preprocess import clahe, dapi_prep, hematoxylin, ncc, norm01, optical_density, overlay, tissue_mask, warp
 from .refine import he_onto_grid, mi_affine, phase_shift, shift_img, summarize, tile_residuals, tiles_absolute
 from .transforms import S, apply, decompose, write_explorer_csv
@@ -33,36 +33,43 @@ def stage_global(a):
     log(f"DAPI L0 {D.shapes[0]}  ({D.shapes[0][1] * px / 1000:.1f} x {D.shapes[0][0] * px / 1000:.1f} mm)")
     log(f"H&E  L0 {Hp.shapes[0][:2]}  ({Hp.shapes[0][1] * mpp / 1000:.1f} x {Hp.shapes[0][0] * mpp / 1000:.1f} mm)")
 
-    r = a.coarse_um
-    dimg, Md = D.grid(r)
-    hrgb, Mh = Hp.grid(r)
-    dn = dapi_prep(dimg)
-    hh = hematoxylin(hrgb)
-    hod = optical_density(hrgb)
-    hmask = hod > 0.08
-    hn = norm01(hh, hmask, 1, 99.5)
-    del hrgb, hh
-    log(f"coarse grid {r} um/px: DAPI {dn.shape}, H&E {hn.shape}")
+    # Low-texture tissue (heart, muscle) can give too few SIFT matches at the default coarse grid;
+    # one retry at half the pixel size usually recovers it.
+    tries = [a.coarse_um] + ([a.coarse_um / 2] if a.coarse_um / 2 >= 1 else [])
+    for r in tries:
+        dimg, Md = D.grid(r)
+        hrgb, Mh = Hp.grid(r)
+        dn = dapi_prep(dimg)
+        hh = hematoxylin(hrgb)
+        hod = optical_density(hrgb)
+        hmask = hod > 0.08
+        hn = norm01(hh, hmask, 1, 99.5)
+        del hrgb, hh
+        log(f"coarse grid {r} um/px: DAPI {dn.shape}, H&E {hn.shape}")
 
-    # ---- orientation: SIFT is rotation-invariant, so only the mirror flip has to be searched;
-    #      the similarity fit recovers any rotation angle (not just multiples of 90 degrees) ----
-    f = 0.5
-    ds_ = cv2.resize(dn, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
-    hs_ = cv2.resize(hn, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
-    du8 = clahe(ds_)
-    scores = []
-    for flip in (False, True):
-        ho, Oh = dihedral(hs_, 0, flip)
-        pa, pb = sift_matches(clahe(ho), du8, nfeat=a.sift_features)
-        M, n = fit_similarity(pa, pb, thr=a.ransac_um / (r / f))
-        rot = decompose(M)["rotation_deg"] if M is not None else None
-        scores.append(dict(flip=flip, inliers=n, matches=len(pa), rotation_deg=rot,
-                           M_search=None if M is None else (M @ Oh).tolist(),
-                           _pa=apply(np.linalg.inv(Oh), pa) if len(pa) else pa, _pb=pb))
-        log(f"  flip={flip}: {n} RANSAC inliers / {len(pa)} matches"
-            + (f", rotation {rot:.1f} deg" if rot is not None and n else ""))
-    scores.sort(key=lambda s: -s["inliers"])
-    best = scores[0]
+        # ---- orientation: SIFT is rotation-invariant, so only the mirror flip has to be searched;
+        #      the similarity fit recovers any rotation angle (not just multiples of 90 degrees) ----
+        f = 0.5
+        ds_ = cv2.resize(dn, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+        hs_ = cv2.resize(hn, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+        du8 = clahe(ds_)
+        scores = []
+        for flip in (False, True):
+            ho, Oh = dihedral(hs_, 0, flip)
+            pa, pb = sift_matches(clahe(ho), du8, nfeat=a.sift_features)
+            M, n = fit_similarity(pa, pb, thr=a.ransac_um / (r / f))
+            rot = decompose(M)["rotation_deg"] if M is not None else None
+            scores.append(dict(flip=flip, inliers=n, matches=len(pa), rotation_deg=rot,
+                               M_search=None if M is None else (M @ Oh).tolist(),
+                               _pa=apply(np.linalg.inv(Oh), pa) if len(pa) else pa, _pb=pb))
+            log(f"  flip={flip}: {n} RANSAC inliers / {len(pa)} matches"
+                + (f", rotation {rot:.1f} deg" if rot is not None and n else ""))
+        scores.sort(key=lambda s: -s["inliers"])
+        best = scores[0]
+        if best["inliers"] >= 12:
+            break
+        if r != tries[-1]:
+            log(f"too few SIFT inliers at {r} um/px; retrying at {r / 2:g} um/px")
     if best["inliers"] < 12:
         raise HistoalignError("No orientation produced a reliable match. Check that the H&E and Xenium are the same "
                  "section, or pass a manual initial transform.")
@@ -393,15 +400,18 @@ def stage_report(a):
     if qc_rows:
         nuc_ = qc_rows[0][1].get("method") == "nuclei"
         qc_lines = ["", ("Independent check by nucleus matching: Xenium nucleus centroids vs hematoxylin nuclei detected "
-                         f"in the H&E, mutual nearest neighbours within 3 um, median offset per {a.tile_um:.0f} um square (um):"
+                         f"in the H&E, mutual nearest neighbours within 3 um, median offset per {a.tile_um:.0f} um square (um). "
+                         "Squares whose pair count is no better than chance (H&E nuclei shifted 12 um match as often) "
+                         "are scored as 3 um:"
                          if nuc_ else f"Tile phase-correlation residual, {a.tile_um:.0f} um tiles (um):"), "",
-                    "| transform | median | p90 | p99 | systematic offset (dx, dy) | nucleus pairs |",
-                    "|---|---|---|---|---|---|"]
+                    "| transform | median | p90 | p99 | systematic offset (dx, dy) | nucleus pairs | squares at chance |",
+                    "|---|---|---|---|---|---|---|"]
         for name, sm in qc_rows:
             off_ = (f"{sm['systematic_offset_um']:.2f} ({sm['mean_dx_um']:+.2f}, {sm['mean_dy_um']:+.2f})"
                     if "systematic_offset_um" in sm else "")
             qc_lines.append(f"| {name} | {sm['median_um']:.2f} | {sm['p90_um']:.2f} | {sm.get('p99_um', float('nan')):.2f} | "
-                            f"{off_} | {sm.get('n_matched', '')} |")
+                            f"{off_} | {sm.get('n_matched', '')} | "
+                            + (f"{sm['n_tiles_chance']}/{sm['n_tiles']}" if "n_tiles_chance" in sm else "") + " |")
 
     # ---- report ----
     def med(col):
@@ -484,7 +494,8 @@ def stage_qc(a):
         lo, _, hi = a.pieces.partition(":")
         sel = range(int(lo), int(hi) if hi else int(lo) + 1)
     rq = a.qc_um
-    fresh = lambda d: np.allclose(d["G"], G, atol=1e-6) and d.get("method") == method
+    fresh = lambda d: (np.allclose(d["G"], G, atol=1e-6) and d.get("method") == method
+                       and (method != "nuclei" or d.get("qc_version") == QC_VERSION))
     for i in sel:
         if i >= len(pieces):
             break
@@ -495,7 +506,9 @@ def stage_qc(a):
         t0 = time.time()
         if method == "nuclei":
             tiles, s = qc_region_nuclei(Hp, G, p, nuc, px, a.tile_um)
-            msg = (f"{s['n_matched']:,} nucleus pairs, offset ({s['median_dx_um']:+.2f}, {s['median_dy_um']:+.2f}) um"
+            msg = (f"{s['n_matched']:,} nucleus pairs ({s['n_chance']:,.0f} expected by chance), offset "
+                   f"({s['median_dx_um']:+.2f}, {s['median_dy_um']:+.2f}) um"
+                   + (f"; {s['n_tiles_chance']} tiles no better than chance" if s["n_tiles_chance"] else "")
                    if s["n_matched"] else "too few nuclei")
         else:
             dq, Mdq = D.grid(rq, p["bbox_dapi0"])
@@ -506,7 +519,8 @@ def stage_qc(a):
                                    p.get("core_dapi0") if p.get("kind") == "block" else None)
             s = summarize([t for t in tiles if t["in_core"]])
             msg = f"{s['n_tiles']} tiles, median " + ("n/a" if s["median_um"] is None else f"{s['median_um']:.2f} um")
-        f.write_text(json.dumps(dict(id=p["id"], G=G.tolist(), method=method, summary=s, tiles=tiles)))
+        f.write_text(json.dumps(dict(id=p["id"], G=G.tolist(), method=method, qc_version=QC_VERSION, summary=s,
+                                     tiles=tiles)))
         log(f"qc {p['id']}: {msg} [{time.time() - t0:.1f}s]")
     done = [json.loads((cache / f"qc_{tag}_{p['id']}.json").read_text()) for p in pieces
             if (cache / f"qc_{tag}_{p['id']}.json").exists()]
@@ -523,6 +537,9 @@ def stage_qc(a):
         reg = pd.DataFrame([dict(region=d["id"], **d["summary"]) for d in done])
         reg.to_csv(a.out / f"qc_{tag}_regions.csv", index=False)
         w = reg["n_matched"].to_numpy(float)
+        n_ch = int(tiles["chance"].sum()) if "chance" in tiles else 0
+        summ.update(n_tiles_chance=n_ch, frac_tiles_chance=n_ch / max(1, len(tiles)),
+                    n_chance=float(reg["n_chance"].sum()) if "n_chance" in reg else None)
         summ.update(n_matched=int(w.sum()), n_nuclei=int(reg["n_nuclei"].sum()),
                     mean_dx_um=float(np.nansum(reg["median_dx_um"] * w) / w.sum()),
                     mean_dy_um=float(np.nansum(reg["median_dy_um"] * w) / w.sum()))
@@ -532,7 +549,9 @@ def stage_qc(a):
     what = "the exported affine" if tag == "final" else Path(a.qc_alignment).name
     log(f"qc ({method}) of {what}: {summ['n_tiles']} tiles, median {summ['median_um']:.2f} um, p90 {summ['p90_um']:.2f} um"
         + (f"; systematic offset ({summ['mean_dx_um']:+.2f}, {summ['mean_dy_um']:+.2f}) um from "
-           f"{summ['n_matched']:,} nucleus pairs" if method == "nuclei" else ""))
+           f"{summ['n_matched']:,} nucleus pairs" if method == "nuclei" else "")
+        + (f"; {summ['n_tiles_chance']} of {summ['n_tiles']} tiles no better than chance (scored as >= 3 um)"
+           if method == "nuclei" and summ.get("n_tiles_chance") else ""))
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt

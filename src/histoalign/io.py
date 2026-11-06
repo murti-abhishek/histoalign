@@ -26,9 +26,17 @@ class Pyramid:
     def __init__(self, path, px_um, is_ome=True, align="auto", name="image"):
         self.path = str(path)
         self.tf = tifffile.TiffFile(self.path) if is_ome else tifffile.TiffFile(self.path, is_ome=False)
-        levels = self.tf.series[0].levels
-        self.pages = [lv.pages[0] for lv in levels]
-        self.shapes = [p.shape for p in self.pages]
+        ser = self.tf.series[0]
+        levels = ser.levels
+        # planar RGB (axes CYX, one page per channel), as in early 10x post-Xenium H&E OME-TIFFs
+        self.planar = ser.axes.startswith("C") and ser.shape[0] == 3 and len(levels[0].pages) == 3
+        if self.planar:
+            self.pages = [[pg.aspage() for pg in lv.pages[:3]] for lv in levels]
+            self.shapes = [p[0].shape[:2] + (3,) for p in self.pages]
+        else:
+            self.pages = [lv.pages[0] for lv in levels]
+            self.shapes = [p.shape for p in self.pages]
+        self.rgb = len(self.shapes[0]) == 3 and self.shapes[0][2] in (3, 4)
         self.px = float(px_um)
         h0 = self.shapes[0][0]
         self.ds = [max(1, int(round(h0 / sh[0]))) for sh in self.shapes]
@@ -51,20 +59,22 @@ class Pyramid:
         from skimage.registration import phase_cross_correlation
         kc = len(self.ds) - 1
         c = self._gray(self.read_level(kc))
-        w = max(3, n // 4)
+        # window and border scale with the coarsest level: a fixed 64 px border blanks a narrow strip entirely
+        w = max(3, min(n // 4, min(c.shape) // 4))
+        b = max(1, w // 2)
         mu = cv2.blur(c, (w, w))
         sd = np.sqrt(np.maximum(cv2.blur(c * c, (w, w)) - mu * mu, 0))
-        sd[:w, :] = sd[-w:, :] = 0
-        sd[:, :w] = sd[:, -w:] = 0
+        sd[:b, :] = sd[-b:, :] = 0
+        sd[:, :b] = sd[:, -b:] = 0
         cy, cx = np.unravel_index(np.argmax(sd), sd.shape)
         X0, Y0 = (cx + 0.5) * self.ds[kc], (cy + 0.5) * self.ds[kc]  # level-0 px
-        off, kinds = [0.0], []
+        kinds = [None]  # per level: "index", "corner", or None when it could not be measured
         for k in range(1, len(self.ds)):
             f = self.ds[k] / self.ds[k - 1]
             fi = int(round(f))
             m = min(n, self.shapes[k][0] // 2, self.shapes[k][1] // 2)
             if m < 32 or abs(f - fi) > 1e-6:
-                off.append(off[-1] - (f - 1) / 2 * self.ds[k - 1] if kinds and kinds[-1] == "index" else off[-1])
+                kinds.append(None)
                 continue
             bx0 = int(np.clip(X0 / self.ds[k] - m / 2, 0, self.shapes[k][1] - m))
             by0 = int(np.clip(Y0 / self.ds[k] - m / 2, 0, self.shapes[k][0] - m))
@@ -72,21 +82,23 @@ class Pyramid:
             A = self._gray(self.read_region(k - 1, bx0 * fi, by0 * fi, m * fi, m * fi))
             A2 = cv2.resize(A, (m, m), interpolation=cv2.INTER_AREA)  # corner-aligned by construction
             if B.std() < 1e-6 or A2.std() < 1e-6:
-                off.append(off[-1])
+                kinds.append(None)
                 continue
             sh, _, _ = phase_cross_correlation(B, A2, upsample_factor=40)
             s_ = -float(np.mean(sh))  # B(v) = A2(v + s): level-k corner u_k sits at level-(k-1) corner f*(u_k + s)
             s_idx = -(f - 1) / (2 * f)
-            if abs(s_ - s_idx) < abs(s_):
-                kinds.append("index")
-                s_use = s_idx
-            else:
-                kinds.append("corner")
-                s_use = 0.0
+            kinds.append("index" if abs(s_ - s_idx) < abs(s_) else "corner")
+        measured = [x for x in kinds if x]
+        if not measured:
+            log("warning: pyramid alignment could not be measured; assuming corner aligned (set pyramid_align)")
+        major = "index" if measured and measured.count("index") >= measured.count("corner") else "corner"
+        kinds = [x or major for x in kinds]  # unmeasured levels follow the measured majority
+        off = [0.0]
+        for k in range(1, len(self.ds)):
+            f = self.ds[k] / self.ds[k - 1]
+            s_use = -(f - 1) / (2 * f) if kinds[k] == "index" else 0.0
             off.append(off[-1] + f * s_use * self.ds[k - 1])
-        kind = "index" if kinds and kinds.count("index") >= kinds.count("corner") else "corner"
-        if len(set(kinds)) > 1:
-            kind = "mixed"
+        kind = "mixed" if len(set(kinds[1:])) > 1 else major
         return off, kind
 
     def level_matrix(self, k, lx0=0, ly0=0):
@@ -102,11 +114,28 @@ class Pyramid:
                 best = k
         return best
 
+    def _unblack(self, a):
+        """Pure-black RGB pixels are padding (resampled slides, reads past the edge), never stain:
+        make them white background so they don't read as solid hematoxylin."""
+        if self.rgb and a.dtype == np.uint8:
+            z = (a[..., :3] == 0).all(-1)
+            if z.any():
+                a = a.copy()
+                a[z] = 255
+        return a
+
     def read_level(self, k):
-        return self.pages[k].asarray()
+        if self.planar:
+            return self._unblack(np.stack([p.asarray() for p in self.pages[k]], -1))
+        return self._unblack(self.pages[k].asarray())
 
     def read_region(self, k, x0, y0, w, h):
-        p = self.pages[k]
+        if self.planar:
+            return self._unblack(np.stack([self._read_page(p, x0, y0, w, h) for p in self.pages[k]], -1))
+        return self._unblack(self._read_page(self.pages[k], x0, y0, w, h))
+
+    @staticmethod
+    def _read_page(p, x0, y0, w, h):
         H, W = p.imagelength, p.imagewidth
         spp = p.samplesperpixel
         out = np.zeros((h, w, spp) if spp > 1 else (h, w), dtype=p.dtype)

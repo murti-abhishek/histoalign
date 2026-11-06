@@ -51,7 +51,17 @@ def detect_he_nuclei(Hp, bb_he0, r_um=0.55, sigma_um=1.2, min_dist_um=2.5):
     d = Hp.ds[k]
     x0, y0, x1, y1 = bb_he0
     lx0, ly0 = int(np.floor(x0 / d)), int(np.floor(y0 / d))
-    img = Hp.read_region(k, lx0, ly0, int(np.ceil(x1 / d)) - lx0, int(np.ceil(y1 / d)) - ly0)
+    w, h = int(np.ceil(x1 / d)) - lx0, int(np.ceil(y1 / d)) - ly0
+    img = Hp.read_region(k, lx0, ly0, w, h)
+    # read_region zero-fills outside the image; black reads as solid hematoxylin and floods the peak
+    # finder with plateau "nuclei", so paint it white (background) instead
+    H, W = Hp.shapes[k][:2]
+    ys, ye, xs, xe = max(0, -ly0), min(h, H - ly0), max(0, -lx0), min(w, W - lx0)
+    if ys > 0 or xs > 0 or ye < h or xe < w:
+        inside = np.zeros((h, w), bool)
+        inside[ys:max(ys, ye), xs:max(xs, xe)] = True
+        img = img.copy()
+        img[~inside] = np.iinfo(img.dtype).max if img.dtype.kind in "ui" else 1.0
     r = d * Hp.px
     b = cv2.GaussianBlur(hematoxylin(img), (0, 0), sigma_um / r)
     pk = peak_local_max(b, min_distance=max(1, int(round(min_dist_um / r))),
@@ -76,16 +86,26 @@ def match_nuclei(xn, hx, max_px):
     return ia[keep], ib[keep]
 
 
-def qc_region_nuclei(Hp, G, p, nuc, px, tile_um, max_um=3.0, min_matches=30, win_um=1500.0):
+QC_VERSION = 2  # 2: chance-pairing control (tiles whose matches are no better than chance are censored)
+NULL_SHIFTS_UM = ((12.0, 12.0), (-12.0, 12.0), (12.0, -12.0), (-12.0, -12.0))
+
+
+def qc_region_nuclei(Hp, G, p, nuc, px, tile_um, max_um=3.0, min_matches=30, win_um=1500.0, min_ratio=1.33):
     """Offset of every matched nucleus pair (H&E detection mapped by G minus Xenium centroid), pooled
-    per tile_um square: the median vector of hundreds of nuclei is precise to a few tens of nm."""
+    per tile_um square: the median vector of hundreds of nuclei is precise to a few tens of nm.
+
+    Chance control: in dense tissue (bone marrow, lymphoid tissue) mutual nearest neighbours within
+    max_um also form when the alignment is far off, and the median of those random offsets is close to
+    zero, so a wrong alignment can score well. Each window is therefore also matched with the H&E
+    detections shifted by 12 um (four directions); a tile whose real pair count is below min_ratio x the
+    shifted count is no better than chance, and its error is censored at max_um ('at least max_um')."""
     x0, y0, x1, y1 = p["core_dapi0"] if p.get("kind") == "block" else p["bbox_dapi0"]
     xn = nuc[(nuc[:, 0] >= x0) & (nuc[:, 0] < x1) & (nuc[:, 1] >= y0) & (nuc[:, 1] < y1)]
     if len(xn) < min_matches:
         return [], dict(n_nuclei=int(len(xn)), n_matched=0)
     m = 2 * max_um / px
     w = win_um / px  # large regions are processed in windows to bound memory and time
-    V, XY, n_det = [], [], 0
+    V, XY, XYn, n_det = [], [], [], 0
     for wy in np.arange(y0, y1, w):
         for wx in np.arange(x0, x1, w):
             wx1, wy1 = min(wx + w, x1), min(wy + w, y1)
@@ -99,11 +119,19 @@ def qc_region_nuclei(Hp, G, p, nuc, px, tile_um, max_um=3.0, min_matches=30, win
             ia, ib = match_nuclei(xn[sw], hx, max_um / px)
             V.append((hx[ib] - xn[sw][ia]) * px)
             XY.append(xn[sw][ia] * px)
+            for sx, sy in NULL_SHIFTS_UM:
+                ja, _ = match_nuclei(xn[sw], hx + np.array([sx, sy]) / px, max_um / px)
+                XYn.append(xn[sw][ja] * px)
     v = np.vstack(V) if V else np.zeros((0, 2))
     xy = np.vstack(XY) if XY else np.zeros((0, 2))
+    xyn = np.vstack(XYn) if XYn else np.zeros((0, 2))
     tiles = []
     t = tile_um
     keys = np.floor(xy / t).astype(int)
+    null_n = {}
+    if len(xyn):
+        nk, nc = np.unique(np.floor(xyn / t).astype(int), axis=0, return_counts=True)
+        null_n = {tuple(k): c / len(NULL_SHIFTS_UM) for k, c in zip(nk.tolist(), nc)}
     if len(keys):
         uk, inv = np.unique(keys, axis=0, return_inverse=True)
         inv = inv.ravel()
@@ -114,9 +142,14 @@ def qc_region_nuclei(Hp, G, p, nuc, px, tile_um, max_um=3.0, min_matches=30, win
             if len(idx) < min_matches:
                 continue
             mv = np.median(v[idx], axis=0)
+            nn = float(null_n.get(tuple(key.tolist()), 0.0))
+            chance = bool(len(idx) < min_ratio * nn)
+            raw = float(np.hypot(*mv))
             tiles.append(dict(x_um=float((key[0] + 0.5) * t), y_um=float((key[1] + 0.5) * t), dx_um=float(mv[0]),
-                              dy_um=float(mv[1]), err_um=float(np.hypot(*mv)), n=int(len(idx)), in_core=True))
+                              dy_um=float(mv[1]), err_um=max(raw, max_um) if chance else raw, err_raw_um=raw,
+                              n=int(len(idx)), n_chance=nn, chance=chance, in_core=True))
     med = np.median(v, axis=0) if len(v) else np.array([np.nan, np.nan])
     return tiles, dict(n_nuclei=int(len(xn)), n_detected=int(n_det), n_matched=int(len(v)),
+                       n_chance=float(len(xyn) / len(NULL_SHIFTS_UM)), n_tiles_chance=int(sum(x["chance"] for x in tiles)),
                        median_dx_um=float(med[0]), median_dy_um=float(med[1]), offset_um=float(np.hypot(*med)),
                        spread_mad_um=float(np.median(np.linalg.norm(v - med, axis=1))) if len(v) else None)
