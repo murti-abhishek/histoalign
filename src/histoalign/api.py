@@ -21,6 +21,10 @@ def register(xenium, he, out, *, stage="all", **options):
     stage: "all" (default), or one of "global", "refine", "report", "qc".
     options: any field of `histoalign.Options`, e.g. layout="tma", block_um=1000, threads=1,
     reference_alignment="10x_he_imagealignment.csv".
+    TMA slides: cores are named by their place on the array (A1, B4, ...: row letters from the top,
+    column numbers from the left, as the H&E is scanned); `00_core_map.png` shows the names.
+    cores=["B4", "C7"] / exclude_cores=[...] pick cores (by label or core_map ID);
+    core_map="cores.csv" ("B4,patient_07" per line) carries your IDs into every output.
     Returns a `Result` read from the output folder."""
     opts = Options.from_kwargs(xenium=xenium, he=he, out=out, **options)
     run(stage, opts)

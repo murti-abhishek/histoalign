@@ -44,6 +44,15 @@ def _add_register_args(ap, required_inputs=True):
     ap.add_argument("--ransac-um", type=float, default=d.ransac_um)
     ap.add_argument("--sift-features", type=int, default=d.sift_features)
     ap.add_argument("--min-piece-mm2", type=float, default=d.min_piece_mm2)
+    ap.add_argument("--cores", default=d.cores,
+                    help="TMA: only these cores, comma-separated grid labels (B4,C7) or core-map IDs")
+    ap.add_argument("--exclude-cores", default=d.exclude_cores, help="TMA: skip these cores (same format as --cores)")
+    ap.add_argument("--core-map", default=d.core_map,
+                    help="TMA: CSV with one 'label,your_id' per line (e.g. B4,patient_07); IDs appear in every output")
+    ap.add_argument("--tma-merge-um", type=float, default=d.tma_merge_um,
+                    help="TMA: tissue fragments closer than this belong to one core (um)")
+    ap.add_argument("--tma-label-frame", choices=["he", "xenium"], default=d.tma_label_frame,
+                    help="TMA: name rows/columns as the H&E is scanned (default) or as the DAPI image is oriented")
     ap.add_argument("--pad-um", type=float, default=d.pad_um)
     ap.add_argument("--max-shift-um", type=float, default=d.max_shift_um)
     ap.add_argument("--pieces", default=d.pieces, help="subset of regions for refine/qc, e.g. 0:6")

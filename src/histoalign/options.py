@@ -20,6 +20,11 @@ class Options:
     he_od_threshold: float | None = None    # section: H&E optical-density tissue threshold (None = automatic)
     drift_outlier_um: float = 3.0           # section: blocks drifting more than this are left out of the refit
     min_piece_mm2: float = 0.05             # smallest tissue piece kept (mm2)
+    tma_merge_um: float = 100.0             # tma: tissue fragments closer than this are one core (um)
+    tma_label_frame: str = "he"             # tma: name the grid as the H&E is scanned ("he") or as the DAPI ("xenium")
+    cores: list | str | None = None         # tma: only these cores, by grid label (B4) or core_map ID
+    exclude_cores: list | str | None = None # tma: skip these cores
+    core_map: str | None = None             # tma: CSV "label,your_id" per line, e.g. B4,patient_07
     pad_um: float = 100.0                   # margin around each region (um)
 
     # images and resolutions
@@ -50,7 +55,13 @@ class Options:
             v = getattr(self, f)
             if v is not None and not isinstance(v, Path):
                 setattr(self, f, Path(v))
-        for f in ("qc_alignment", "reference_alignment"):  # kept as text: written into the JSON outputs
+        for f in ("cores", "exclude_cores"):
+            v = getattr(self, f)
+            if isinstance(v, (tuple, set)):
+                setattr(self, f, list(v))
+        if self.tma_label_frame not in ("he", "xenium"):
+            raise ValueError("tma_label_frame must be 'he' or 'xenium'")
+        for f in ("qc_alignment", "reference_alignment", "core_map"):  # kept as text: written into the JSON outputs
             v = getattr(self, f)
             if v is not None:
                 setattr(self, f, str(v))

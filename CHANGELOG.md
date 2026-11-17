@@ -28,3 +28,14 @@
   0.25 um under v1, about 20 um off by eye). Each window is now also matched against the H&E nuclei shifted
   by 12 um; squares whose pair count is below 1.33x that chance count are reported (`chance`, `n_chance`)
   and scored as 3 um. The report table gains a "squares at chance" column. Cached v1 QC results are recomputed.
+- TMA cores are named by their place on the array: rows A, B, ... from the top and columns 1, 2, ... from the left,
+  as the H&E is scanned (`tma_label_frame="xenium"` names them as the DAPI image is oriented). Rows and columns
+  come from the array's pitch and angle, so a missing core or an empty column leaves a gap instead of shifting
+  labels; fragments closer than `tma_merge_um` (100 um) are one core. `00_core_map.png` shows the names on the H&E,
+  with empty grid positions marked. Falls back to reading order (core01, ...) when the cores are not on a grid.
+- `cores=` / `exclude_cores=` pick cores by grid label or by your own ID; `core_map=` (CSV, `B4,patient_07`) carries
+  your IDs into the outputs. These options apply to TMA runs only; section runs are unchanged.
+- TMA QC scores each core with its own transform (what `cells_in_he_coordinates.parquet` uses) and, separately, the
+  single exported affine (Xenium Explorer): `qc_final_cores.csv` / `qc_final_single_cores.csv`, per-core error maps
+  `05_core_error_map_*.png`, and a per-core table in the report. On a 31-core TMA the cores had shifted by up to
+  ~1.5 um relative to each other, so the single matrix scored 0.96 um and the per-core transforms 0.61 um.

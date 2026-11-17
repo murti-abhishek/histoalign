@@ -11,11 +11,23 @@ from ._util import HistoalignError, log
 from .coarse import dihedral, fit_similarity, sift_matches
 from .combine import benchmark_points, fit_global_from_regions, load_refined, pct, piecewise_to_he, region_lookup
 from .io import Pyramid, he_mpp, image_stem, xenium_info
-from .layout import choose_layout, regions_from_blocks, regions_from_components, section_mask
+from .layout import choose_layout, regions_from_blocks, section_mask
 from .nuclei import QC_VERSION, qc_region_nuclei, xenium_nuclei
 from .preprocess import clahe, dapi_prep, hematoxylin, ncc, norm01, optical_density, overlay, tissue_mask, warp
 from .refine import he_onto_grid, mi_affine, phase_shift, shift_img, summarize, tile_residuals, tiles_absolute
+from .tma import apply_core_map, core_map_title, draw_core_map, save_thumbnail, select_cores, tma_cores
 from .transforms import S, apply, decompose, write_explorer_csv
+
+
+def _cores(g, a):
+    """(all regions with your IDs attached, the regions this run processes). Sections: every block."""
+    if g.get("layout") != "tma":
+        if a.cores or a.exclude_cores or a.core_map:
+            raise HistoalignError("cores=, exclude_cores= and core_map= apply to TMA runs only; this run's layout is "
+                                  "one tissue section (set layout='tma' if the slide is an array of cores)")
+        return g["pieces"], g["pieces"]
+    pcs = apply_core_map([dict(p) for p in g["pieces"]], a.core_map)
+    return pcs, select_cores(pcs, a.cores, a.exclude_cores)
 
 
 # --------------------------------------------------------------------------------------------
@@ -44,7 +56,7 @@ def stage_global(a):
         hod = optical_density(hrgb)
         hmask = hod > 0.08
         hn = norm01(hh, hmask, 1, 99.5)
-        del hrgb, hh
+        del hh
         log(f"coarse grid {r} um/px: DAPI {dn.shape}, H&E {hn.shape}")
 
         # ---- orientation: SIFT is rotation-invariant, so only the mirror flip has to be searched;
@@ -106,9 +118,11 @@ def stage_global(a):
                          min_area_px=a.min_piece_mm2 * 1e6 / r ** 2)
     layout, why = choose_layout(m_dapi, a.layout, a.auto_section_frac)
     log(f"layout: {layout} ({why})")
+    grid, thumb_M = None, None
     if layout == "tma":
         m = m_dapi
-        pieces, lab = regions_from_components(m, r)
+        pieces, lab, grid = tma_cores(m, r, Md, G, px, mpp, a.tma_merge_um, a.tma_label_frame)
+        thumb_M = save_thumbnail(hrgb, Mh, cache)
     else:
         hod_on_dapi = warp(hod, Mh @ np.linalg.inv(G) @ Mdi, dn.shape)
         m, mask_info = section_mask(dimg, m_dapi, hod, hod_on_dapi, r, a)
@@ -121,7 +135,8 @@ def stage_global(a):
         c = apply(Mdi, [[x0, y0], [x1, y1]])
         p["core_dapi0"] = [float(c[0, 0]), float(c[0, 1]), float(c[1, 0]), float(c[1, 1])]
         p["bbox_dapi0"] = [float(c[0, 0] - pad), float(c[0, 1] - pad), float(c[1, 0] + pad), float(c[1, 1] + pad)]
-    kind = "tissue pieces" if layout == "tma" else f"{a.block_um / 1000:g} mm blocks"
+    del hrgb
+    kind = "TMA cores" if layout == "tma" else f"{a.block_um / 1000:g} mm blocks"
     log(f"{len(pieces)} regions ({kind}), tissue {m.sum() * r * r / 1e6:.1f} mm2")
 
     np.save(cache / "pieces_labels_coarse.npy", lab.astype(np.int32))
@@ -153,8 +168,15 @@ def stage_global(a):
                block_um=a.block_um if layout == "section" else None,
                tissue_mask_mm2=float(m.sum() * r * r / 1e6),
                dapi_mask_mm2=float(m_dapi.sum() * r * r / 1e6))
+    if layout == "tma":
+        res.update(tma_grid=grid, he_thumb_M=thumb_M)
     (cache / "global.json").write_text(json.dumps(res, indent=1))
     log("wrote 01_global_overlay.png and cache/global.json")
+    if layout == "tma":
+        allp, act = _cores(res, a)
+        draw_core_map(dict(res, pieces=allp), cache, a.out / "00_core_map.png", pieces=act,
+                      title=core_map_title(res, len(act)))
+        log("wrote 00_core_map.png (core names on the H&E)")
 
 
 def stage_refine(a):
@@ -164,7 +186,7 @@ def stage_refine(a):
     px, mpp = g["xenium_px_um"], g["he_mpp"]
     D = Pyramid(g["dapi_path"], px, is_ome=False, align=a.pyramid_align, name="DAPI")
     Hp = Pyramid(a.he, mpp, align=a.pyramid_align, name="H&E")
-    pieces = g["pieces"]
+    pieces = _cores(g, a)[1]
     sel = range(len(pieces))
     if a.pieces:
         lo, _, hi = a.pieces.partition(":")
@@ -251,9 +273,11 @@ def stage_report(a):
     section = layout == "section"
     G_sift = np.array(g["G"])
     px, mpp = g["xenium_px_um"], g["he_mpp"]
-    pieces = {p["id"]: p for p in g["pieces"]}
-    per = load_refined(g, cache)
-    unit = "block" if section else "piece"
+    allp, act = _cores(g, a)
+    g = dict(g, pieces=allp)
+    pieces = {p["id"]: p for p in act}
+    per = {k: v for k, v in load_refined(g, cache).items() if k in pieces}
+    unit = "block" if section else "core"
 
     # ---- ONE affine refit to all accepted regions. This removes the small systematic error of the
     #      low-res SIFT fit; what remains per region is local deformation (blocks) or piece drift. ----
@@ -270,7 +294,8 @@ def stage_report(a):
     rows = []
     for pid, d in per.items():
         p = pieces[pid]
-        rows.append(dict(region=pid, kind=p.get("kind", "piece"), area_mm2=round(p["area_mm2"], 3),
+        rows.append(dict(region=pid, **({"name": p.get("name")} if not section else {}),
+                         kind=p.get("kind", "piece"), area_mm2=round(p["area_mm2"], 3),
                          x_um=round(np.mean(p["core_dapi0"][0::2]) * px, 1) if "core_dapi0" in p else None,
                          y_um=round(np.mean(p["core_dapi0"][1::2]) * px, 1) if "core_dapi0" in p else None,
                          transform_used=d["transform_used"], excluded_from_global_fit=pid in excluded,
@@ -390,7 +415,11 @@ def stage_report(a):
     if qf.exists():
         q = json.loads(qf.read_text())
         if np.allclose(np.array(q["G"]), G, atol=1e-6):
-            qc_rows.append(("**exported affine (this run)**", q["summary"]))
+            qc_rows.append(("**each core's own transform (this run)**" if q.get("transforms") == "per-core"
+                            else "**exported affine (this run)**", q["summary"]))
+            qs = a.out / "qc_final_single.json"
+            if not section and qs.exists() and np.allclose(np.array(json.loads(qs.read_text())["G"]), G, atol=1e-6):
+                qc_rows.append(("single exported affine (Xenium Explorer)", json.loads(qs.read_text())["summary"]))
         else:
             log("qc_final.json is from a different transform; rerun the `qc` stage")
     for qe in sorted(a.out.glob("qc_ext_*.json")):
@@ -413,6 +442,27 @@ def stage_report(a):
                             f"{off_} | {sm.get('n_matched', '')} | "
                             + (f"{sm['n_tiles_chance']}/{sm['n_tiles']}" if "n_tiles_chance" in sm else "") + " |")
 
+    core_lines = []
+    cq = a.out / "qc_final_cores.csv"
+    if not section and cq.exists() and qc_rows and qc_rows[0][0].startswith("**exported"):
+        cdf = pd.read_csv(cq)
+        cdf = cdf[cdf.core.isin(list(pieces))]
+        cs = a.out / "qc_final_single_cores.csv"
+        single = dict(pd.read_csv(cs)[["core", "median_um"]].itertuples(index=False)) if cs.exists() else {}
+        used = {r.region: r.transform_used for r in df.itertuples()} if len(df) else {}
+        core_lines = ["", "Per core, nucleus matching of each core's own transform (`qc_final_cores.csv`, "
+                      "`05_core_error_map_final.png`); last column: the same core under the single exported affine:", "",
+                      "| core | ID | transform | median (um) | p90 (um) | squares | at chance | nucleus pairs | single affine (um) |",
+                      "|---|---|---|---|---|---|---|---|---|"]
+        for r in cdf.itertuples():
+            nm = "" if not isinstance(r.name, str) else r.name
+            f2 = lambda v: "n/a" if v != v else f"{v:.2f}"
+            core_lines.append(f"| {r.core} | {nm} | {used.get(r.core, '')} | {f2(r.median_um)} | {f2(r.p90_um)} | "
+                              f"{r.n_squares} | {r.n_squares_chance} | {r.n_matched} | {f2(single.get(r.core, float('nan')))} |")
+    if not section:
+        draw_core_map(g, cache, a.out / "00_core_map.png", pieces=list(pieces.values()),
+                      title=core_map_title(g, len(pieces)))
+
     # ---- report ----
     def med(col):
         v = df[col].dropna() if len(df) else []
@@ -430,8 +480,11 @@ def stage_report(a):
                          f"max {max(v[1] for v in drift.values()):.2f} um" if drift else "n/a")
                       + (f"; {len(excluded)} outlier blocks excluded from the fit ({', '.join(excluded)})" if excluded else ""))
     else:
-        layout_line = f"- Layout: **separate tissue pieces** ({g.get('layout_reason', 'tma')}); {len(pieces)} pieces"
-        drift_line = ("- Piece drift from the single affine (what a global-only alignment would get wrong): "
+        grid = g.get("tma_grid") or {}
+        layout_line = (f"- Layout: **TMA** ({g.get('layout_reason', 'tma')}); " + core_map_title(g, len(pieces)).replace("\n", "; ")
+                       + (f"; empty grid positions: {', '.join(grid['empty'])}" if grid.get("empty") else "")
+                       + ". Names are shown on `00_core_map.png`")
+        drift_line = ("- Core drift from the single affine (what a global-only alignment would get wrong): "
                       + (f"median {np.median([v[0] for v in drift.values()]):.1f} um, "
                          f"max {max(v[1] for v in drift.values()):.1f} um" if drift else "n/a"))
     lines = [
@@ -449,7 +502,7 @@ def stage_report(a):
         drift_line,
         f"- Tile residual, median over {unit}s: initial SIFT {med('residual_sift_median_um')} um -> "
         f"{unit} refined {med('residual_refined_median_um')} um (self-consistency only: this measure pixel-locks below ~1 um)",
-        *ref_lines, *qc_lines,
+        *ref_lines, *qc_lines, *core_lines,
         "", "Outputs:",
         f"- `{image_stem(g['he'])}_imagealignment.csv`: the exported affine in Xenium Explorer's format "
         "(H&E level-0 px -> Xenium morphology level-0 px); same matrix in `he_to_xenium_global_alignment.csv` "
@@ -459,6 +512,8 @@ def stage_report(a):
         + (f" ({n_cells:,} cells); `he_x_px/he_y_px` use "
            + ("the single affine (one section)" if section else "each piece's own transform")
            + ", both variants are also included." if n_cells else "."),
+        *(["- `00_core_map.png`: the core names (A1, B4, ...) on the H&E; `qc_final_cores.csv` and "
+            "`05_core_error_map_final.png`: the accuracy of every core"] if not section else []),
         "- `per_region_alignment_qc.csv`, `02_residual_per_region.png`, `01_global_overlay.png`, `pieces/`"
         + (", `03_block_drift_map.png`" if section else "") + (", `benchmark_vs_reference.csv`" if bench is not None else ""),
         "", "Notes: the per-block tile residual compares the same two images the refinement optimised, so it "
@@ -472,7 +527,6 @@ def stage_report(a):
 
 
 def stage_qc(a):
-    import pandas as pd
     cache = a.out / "cache"
     g = json.loads((cache / "global.json").read_text())
     if a.qc_alignment:  # QC someone else's matrix (manual, vendor) with exactly the same measurement
@@ -488,13 +542,32 @@ def stage_qc(a):
     method = "nuclei" if nuc is not None else "tiles"
     D = Pyramid(g["dapi_path"], px, is_ome=False, align=a.pyramid_align, name="DAPI") if method == "tiles" else None
     Hp = Pyramid(g["he"], mpp, align=a.pyramid_align, name="H&E")
-    pieces = g["pieces"]
+    allp, pieces = _cores(g, a)
+    G_exp = None if a.qc_alignment else np.loadtxt(a.out / "he_to_xenium_global_alignment.csv", delimiter=",")
+    passes = []
+    if a.qc_alignment:
+        passes.append((tag, G, lambda pid: G, "single", Path(a.qc_alignment).name))
+    elif g.get("layout") == "tma":
+        # a TMA's cores shift a little relative to each other on the slide, so each core gets its own transform
+        # (that is what cells_in_he_coordinates uses); the single exported affine is measured as well
+        per = load_refined(g, cache)
+        own = {k: np.array(v["G_used"]) for k, v in per.items() if v["transform_used"] == "refined"}
+        passes.append(("final", G, lambda pid: own.get(pid, G_exp), "per-core", "each core's own transform"))
+        passes.append(("final_single", G, lambda pid: G_exp, "single", "the single exported affine (Xenium Explorer)"))
+    else:
+        passes.append(("final", G, lambda pid: G, "single", "the exported affine"))
+    for tag, G, Gr, kind, what in passes:
+        _qc_pass(a, g, cache, allp, pieces, tag, G, Gr, kind, what, method, nuc, D, Hp, px)
+
+
+def _qc_pass(a, g, cache, allp, pieces, tag, G, Gr, kind, what, method, nuc, D, Hp, px):
+    import pandas as pd
     sel = range(len(pieces))
     if a.pieces:
         lo, _, hi = a.pieces.partition(":")
         sel = range(int(lo), int(hi) if hi else int(lo) + 1)
     rq = a.qc_um
-    fresh = lambda d: (np.allclose(d["G"], G, atol=1e-6) and d.get("method") == method
+    fresh = lambda d: (np.allclose(d["G"], Gr(d["id"]), atol=1e-6) and d.get("method") == method
                        and (method != "nuclei" or d.get("qc_version") == QC_VERSION))
     for i in sel:
         if i >= len(pieces):
@@ -505,7 +578,7 @@ def stage_qc(a):
             continue
         t0 = time.time()
         if method == "nuclei":
-            tiles, s = qc_region_nuclei(Hp, G, p, nuc, px, a.tile_um)
+            tiles, s = qc_region_nuclei(Hp, Gr(p["id"]), p, nuc, px, a.tile_um)
             msg = (f"{s['n_matched']:,} nucleus pairs ({s['n_chance']:,.0f} expected by chance), offset "
                    f"({s['median_dx_um']:+.2f}, {s['median_dy_um']:+.2f}) um"
                    + (f"; {s['n_tiles_chance']} tiles no better than chance" if s["n_tiles_chance"] else "")
@@ -514,12 +587,12 @@ def stage_qc(a):
             dq, Mdq = D.grid(rq, p["bbox_dapi0"])
             dqn = dapi_prep(dq)
             qmask = tissue_mask(dqn, sigma_px=max(1, 6 / rq), close_px=max(1, int(20 / rq)), min_area_px=2000 / rq ** 2)
-            hq = norm01(hematoxylin(he_onto_grid(Hp, G, Mdq, dqn.shape, rq)), qmask, 1, 99.5)
+            hq = norm01(hematoxylin(he_onto_grid(Hp, Gr(p["id"]), Mdq, dqn.shape, rq)), qmask, 1, 99.5)
             tiles = tiles_absolute(tile_residuals(dqn, hq, qmask, rq, a.tile_um), Mdq, rq, px,
                                    p.get("core_dapi0") if p.get("kind") == "block" else None)
             s = summarize([t for t in tiles if t["in_core"]])
             msg = f"{s['n_tiles']} tiles, median " + ("n/a" if s["median_um"] is None else f"{s['median_um']:.2f} um")
-        f.write_text(json.dumps(dict(id=p["id"], G=G.tolist(), method=method, qc_version=QC_VERSION, summary=s,
+        f.write_text(json.dumps(dict(id=p["id"], G=Gr(p["id"]).tolist(), method=method, qc_version=QC_VERSION, summary=s,
                                      tiles=tiles)))
         log(f"qc {p['id']}: {msg} [{time.time() - t0:.1f}s]")
     done = [json.loads((cache / f"qc_{tag}_{p['id']}.json").read_text()) for p in pieces
@@ -544,9 +617,10 @@ def stage_qc(a):
                     mean_dx_um=float(np.nansum(reg["median_dx_um"] * w) / w.sum()),
                     mean_dy_um=float(np.nansum(reg["median_dy_um"] * w) / w.sum()))
         summ["systematic_offset_um"] = float(np.hypot(summ["mean_dx_um"], summ["mean_dy_um"]))
-    (a.out / f"qc_{tag}.json").write_text(json.dumps(dict(G=G.tolist(), summary=summ,
+    (a.out / f"qc_{tag}.json").write_text(json.dumps(dict(G=G.tolist(), summary=summ, transforms=kind,
                                                           alignment=a.qc_alignment or "exported"), indent=1))
-    what = "the exported affine" if tag == "final" else Path(a.qc_alignment).name
+    if g.get("layout") == "tma" and len(tiles):
+        _core_qc(g, a, cache, allp, pieces, done, tiles, tag, method, what)
     log(f"qc ({method}) of {what}: {summ['n_tiles']} tiles, median {summ['median_um']:.2f} um, p90 {summ['p90_um']:.2f} um"
         + (f"; systematic offset ({summ['mean_dx_um']:+.2f}, {summ['mean_dy_um']:+.2f}) um from "
            f"{summ['n_matched']:,} nucleus pairs" if method == "nuclei" else "")
@@ -576,6 +650,37 @@ def stage_qc(a):
     fig.tight_layout()
     fig.savefig(a.out / ("04_residual_map_final.png" if tag == "final" else f"04_residual_map_{tag}.png"), dpi=150)
     plt.close(fig)
+
+
+def _core_qc(g, a, cache, allp, pieces, done, tiles, tag, method, what):
+    """TMA: one row per core (error over its squares) and the error drawn on the core map."""
+    import pandas as pd
+    by = {d["id"]: d for d in done}
+    rows = []
+    for p in pieces:
+        t = tiles[tiles.region == p["id"]]
+        s = by[p["id"]]["summary"]
+        e = t["err_um"].to_numpy()
+        rows.append(dict(core=p["id"], name=p.get("name"), row=p.get("row"), col=p.get("col"),
+                         area_mm2=round(p["area_mm2"], 3), n_squares=len(t),
+                         median_um=float(np.median(e)) if len(e) else None,
+                         p90_um=float(np.percentile(e, 90)) if len(e) else None,
+                         n_squares_chance=int(t["chance"].sum()) if "chance" in t and len(t) else 0,
+                         n_nuclei=s.get("n_nuclei"), n_matched=s.get("n_matched"),
+                         offset_dx_um=s.get("median_dx_um"), offset_dy_um=s.get("median_dy_um")))
+    df = pd.DataFrame(rows)
+    df.to_csv(a.out / f"qc_{tag}_cores.csv", index=False)
+    vals = {r.core: (np.nan if r.median_um is None else r.median_um) for r in df.itertuples()}
+    m = df.median_um.dropna()
+    draw_core_map(dict(g, pieces=allp), cache, a.out / f"05_core_error_map_{tag}.png", pieces=pieces, values=vals,
+                  vmax=1.5 if method == "nuclei" else max(1.0, float(m.max()) if len(m) else 1.0),
+                  title=f"{what[0].upper() + what[1:]}: median misalignment per core (um), "
+                        + ("nucleus matching" if method == "nuclei" else "tile phase correlation")
+                        + (f"\nmedian over cores {m.median():.2f} um, worst {df.loc[df.median_um.idxmax(), 'core']} "
+                           f"{m.max():.2f} um" if len(m) else ""),
+                  cbar_label="median misalignment over the core's squares (um)")
+    log(f"per-core QC: {len(df)} cores, median {m.median():.2f} um (range {m.min():.2f}-{m.max():.2f}); "
+        f"wrote qc_{tag}_cores.csv and 05_core_error_map_{tag}.png" if len(m) else "per-core QC: no cores scored")
 
 
 # --------------------------------------------------------------------------------------------
