@@ -39,3 +39,7 @@
   single exported affine (Xenium Explorer): `qc_final_cores.csv` / `qc_final_single_cores.csv`, per-core error maps
   `05_core_error_map_*.png`, and a per-core table in the report. On a 31-core TMA the cores had shifted by up to
   ~1.5 um relative to each other, so the single matrix scored 0.96 um and the per-core transforms 0.61 um.
+- `histoalign batch SHEET --out DIR`: runs every row of a sample sheet (name, xenium, he, plus any option as a
+  column), keeps going past a failed slide, resumes where it stopped, and collates `batch_summary.csv`,
+  `batch_cores.csv` (TMA) and `BATCH_REPORT.md` with flags for slides to look at. `histoalign sheet ROOT samples.csv`
+  writes a starting sheet from the Xenium folders under ROOT. Python: `histoalign.run_batch`.

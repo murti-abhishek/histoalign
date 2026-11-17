@@ -100,6 +100,22 @@ def build_parser():
     c.add_argument("--scripted-out", required=True, help="histoalign output folder")
     c.add_argument("--out", default=None, help="where to write results (default: <scripted-out>/comparison)")
 
+    b = sub.add_parser("batch", help="run many Xenium + H&E pairs from a sample sheet and collate their accuracy",
+                       description="Run every row of a sample sheet (CSV/TSV with columns name,xenium,he and optionally "
+                                   "any option, e.g. layout, he_mpp, core_map) into OUT/<name>, then write "
+                                   "OUT/batch_summary.csv, OUT/batch_cores.csv (TMA) and OUT/BATCH_REPORT.md. "
+                                   "Rerunning skips finished samples and resumes an interrupted one. Options given here "
+                                   "apply to every sample unless the sheet sets them.")
+    b.add_argument("sheet", type=Path, help="sample sheet (make one with `histoalign sheet DIR samples.csv`)")
+    _add_register_args(b, required_inputs=False)
+    b.add_argument("--only", default=None, help="comma-separated sample names to run")
+    b.add_argument("--retry-failed", action="store_true", help="rerun samples that failed before")
+    b.add_argument("--check", action="store_true", help="only check that every input exists, run nothing")
+
+    w = sub.add_parser("sheet", help="write a starting sample sheet from the Xenium folders under a directory")
+    w.add_argument("root", type=Path, help="directory to search for Xenium output folders (experiment.xenium)")
+    w.add_argument("sheet", type=Path, help="CSV to write (check and fill in the H&E column before running)")
+
     v = sub.add_parser("convert", help="convert an .svs (or pyramidal TIFF) to a pyramidal OME-TIFF")
     v.add_argument("src", type=Path)
     v.add_argument("out", type=Path, help="output path ending in .ome.tif")
@@ -127,6 +143,18 @@ def main(argv=None):
         elif a.command == "report":
             from .stages import run
             run("report", _opts(a))
+        elif a.command == "batch":
+            from .batch import run_batch
+            d = Options()
+            common = {k: v for k, v in vars(a).items() if k in Options.__dataclass_fields__
+                      and k not in ("xenium", "he", "out", "force") and v != getattr(d, k)}
+            df = run_batch(a.sheet, a.out, only=a.only, force=a.force, retry_failed=a.retry_failed,
+                           check_only=a.check, **common)
+            if df is not None and (df.status != "ok").any():
+                return 2
+        elif a.command == "sheet":
+            from .batch import scan
+            scan(a.root, a.sheet)
         elif a.command == "compare":
             from .compare import compare_alignments
             compare_alignments(a.manual_dir, a.reference, a.scripted_out, a.out)

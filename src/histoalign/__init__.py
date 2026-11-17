@@ -7,6 +7,7 @@
 """
 from ._util import HistoalignError
 from .api import Result, load, qc, register
+from .batch import run_batch
 from .compare import compare_alignments
 from .convert import convert_to_ome_tiff
 from .options import Options
@@ -14,5 +15,5 @@ from .transforms import load_matrix, write_explorer_csv
 
 __version__ = "0.1.0.dev0"
 
-__all__ = ["register", "qc", "load", "Result", "Options", "convert_to_ome_tiff", "compare_alignments",
+__all__ = ["register", "qc", "load", "run_batch", "Result", "Options", "convert_to_ome_tiff", "compare_alignments",
            "load_matrix", "write_explorer_csv", "HistoalignError", "__version__"]
