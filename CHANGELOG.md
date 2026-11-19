@@ -43,3 +43,8 @@
   column), keeps going past a failed slide, resumes where it stopped, and collates `batch_summary.csv`,
   `batch_cores.csv` (TMA) and `BATCH_REPORT.md` with flags for slides to look at. `histoalign sheet ROOT samples.csv`
   writes a starting sheet from the Xenium folders under ROOT. Python: `histoalign.run_batch`.
+- TMA runs write `core_alignments/<core>_imagealignment.csv`: each core's own transform in Xenium Explorer's
+  format, for the whole-slide H&E (no cropping or resampling). Import the slide's OME-TIFF with one core's file to
+  view that core at its own alignment.
+- Fix: `per_piece_transforms.json` listed the initial SIFT affine for regions whose refinement was rejected; it now
+  lists the exported affine, which is what those regions' cells are mapped with (the cell table was already right).

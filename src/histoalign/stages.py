@@ -320,9 +320,20 @@ def stage_report(a):
     write_explorer_csv(G, a.out / f"{image_stem(g['he'])}_imagealignment.csv")
     np.savetxt(a.out / "he_to_xenium_global_alignment_um.csv", S(px) @ G, delimiter=",", fmt="%.10g")
     np.savetxt(cache / "he_to_xenium_global_alignment_sift_initial.csv", G_sift, delimiter=",", fmt="%.10g")
+    # the transform each region's cells actually get: its own when refined, the exported affine otherwise
+    applied = {k: np.array(v["G_used"]) if v["transform_used"] == "refined" else G for k, v in per.items()}
     json.dump({k: dict(kind=pieces[k].get("kind", "piece"), transform_used=v["transform_used"],
-                       he0_to_xenium_px=v["G_used"], he0_to_xenium_um=(S(px) @ np.array(v["G_used"])).tolist())
+                       he0_to_xenium_px=applied[k].tolist(), he0_to_xenium_um=(S(px) @ applied[k]).tolist())
                for k, v in per.items()}, open(a.out / "per_piece_transforms.json", "w"), indent=1)
+    if not section:
+        # one Xenium Explorer file per core: load the whole-slide H&E with a core's file to view that core
+        # at its own alignment (the other cores are then off by their drift from it)
+        cdir = a.out / "core_alignments"
+        cdir.mkdir(exist_ok=True)
+        for k in per:
+            nm = pieces[k].get("name")
+            tag = f"{k}_{re.sub(r'[^A-Za-z0-9._-]+', '_', str(nm))}" if nm else k
+            write_explorer_csv(applied[k], cdir / f"{tag}_imagealignment.csv")
 
     # ---- benchmark against an independent alignment (e.g. 10x's *_he_imagealignment.csv) ----
     ref_lines, bench = [], None
@@ -507,7 +518,11 @@ def stage_report(a):
         f"- `{image_stem(g['he'])}_imagealignment.csv`: the exported affine in Xenium Explorer's format "
         "(H&E level-0 px -> Xenium morphology level-0 px); same matrix in `he_to_xenium_global_alignment.csv` "
         "and in microns in `he_to_xenium_global_alignment_um.csv`.",
-        f"- `per_piece_transforms.json`: each {unit}'s own transform (px and um).",
+        f"- `per_piece_transforms.json`: the transform each {unit}'s cells get (its own when refined, "
+        "otherwise the exported affine), px and um.",
+        *(["- `core_alignments/<core>_imagealignment.csv`: each core's transform in Xenium Explorer's format. "
+           "Import the whole-slide H&E OME-TIFF with a core's file to view that core at its own alignment; "
+           "switch cores by importing another file."] if not section else []),
         "- `cells_in_he_coordinates.parquet`: every Xenium cell centroid in H&E level-0 px"
         + (f" ({n_cells:,} cells); `he_x_px/he_y_px` use "
            + ("the single affine (one section)" if section else "each piece's own transform")
