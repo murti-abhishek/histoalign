@@ -455,7 +455,7 @@ def stage_report(a):
 
     core_lines = []
     cq = a.out / "qc_final_cores.csv"
-    if not section and cq.exists() and qc_rows and qc_rows[0][0].startswith("**exported"):
+    if not section and cq.exists() and qc_rows and "(this run)" in qc_rows[0][0]:
         cdf = pd.read_csv(cq)
         cdf = cdf[cdf.core.isin(list(pieces))]
         cs = a.out / "qc_final_single_cores.csv"
